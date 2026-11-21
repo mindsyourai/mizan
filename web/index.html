@@ -86,7 +86,7 @@
       <h2>Verified counts</h2>
       <p>Published claims about Quranic word-count mathematics that our scripted recount
         <span class="badge ok">confirmed</span> — 16 from scholarly sources and 21 popular claims,
-        in one table, with the source labelled on every row. Disputed numerology is a reported
+        each as a card, with the source labelled on every card. Disputed numerology is a reported
         finding with its status — never settled fact.</p>
       <div class="controls">
         <input id="verified-search" type="search" placeholder="Search verified counts — e.g. 19, dunya, letters…" aria-label="Search verified counts">
@@ -163,9 +163,9 @@
             </select>
           </label>
         </div>
-        <p class="hint">Click a node to highlight its neighbours and see the pair counts. Edge thickness = number of shared verses (or surahs).</p>
+        <p class="hint">Click a node to highlight its neighbours and see the pair counts. Edge thickness = number of shared verses (or surahs). On a small screen, scroll sideways to see the whole graph.</p>
       </div>
-      <canvas id="graph" width="960" height="560" aria-label="Co-occurrence network graph of the Names of God"></canvas>
+      <div class="graph-scroll"><canvas id="graph" width="960" height="560" aria-label="Co-occurrence network graph of the Names of God"></canvas></div>
       <div id="graph-detail" class="graph-detail">Select a Name in the graph to see its strongest partners.</div>
     </div>
     <div id="names-list"></div>
