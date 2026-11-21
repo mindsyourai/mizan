@@ -49,7 +49,7 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;
 /* tabs */
 .tabs{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:6px;
   max-width:1060px;margin:0 auto;padding:12px 20px;
-  background:rgba(247,242,232,.97);border-bottom:1px solid var(--line)}
+  background:var(--bg);border-bottom:1px solid var(--line)}
 .tab{background:var(--chip);color:var(--muted);border:1px solid var(--line);
   border-radius:999px;padding:8px 16px;font-size:.92rem;cursor:pointer;text-decoration:none}
 .tab:hover{color:var(--ink)}
@@ -228,3 +228,99 @@ footer p{max-width:900px;margin:0 auto}
 .brand-logo{display:block;margin:0 auto 8px;max-width:340px;width:72%;height:auto;border-radius:8px}
 .mizan-table td.ar{font-size:1.15em;line-height:2;text-align:right;direction:rtl}
 .research-head h1 .ar{color:var(--gold-text)}
+
+/* ===== Card redesign (2026-11-21) — cards replace tables for stats, facts,
+   corpus totals, surahs, verified/unverified findings and the Mizan verses.
+   Palette, scroll offsets and table styles above are unchanged. ===== */
+
+/* Hero stats: 4-across grid. app.js renders .hero-stat cards into #stats;
+   .hero-stats is styled identically in case the render wraps them. */
+.stats,.hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0 4px}
+.hero-stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:16px 12px;text-align:center}
+.hero-stat b{display:block;font-size:1.9rem;line-height:1.1;color:var(--gold-text);
+  font-variant-numeric:tabular-nums;font-family:Georgia,"Times New Roman",serif}
+.hero-stat span{display:block;color:var(--muted);font-size:.88rem;margin-top:4px}
+
+/* Fact + corpus cards: big value on top, label and note below. */
+#facts-table,.fact-grid,#corpus-table,.corpus-grid{display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin:14px 0}
+.fact-card,.corpus-card{background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;padding:16px 18px}
+.fact-value,.corpus-value{display:block;font-size:1.7rem;line-height:1.2;color:var(--gold-text);
+  font-variant-numeric:tabular-nums;font-family:Georgia,"Times New Roman",serif}
+.fact-label,.corpus-label{font-weight:700;margin-top:6px}
+.fact-note,.corpus-rule{color:var(--muted);font-size:.88rem;margin-top:4px;line-height:1.5}
+.fact-source{color:var(--faint);font-size:.8rem;margin-top:8px}
+
+/* Counting-traditions note under the corpus intro: same treatment as .intro. */
+.counting-note{font-family:Georgia,"Times New Roman",serif;font-size:1rem;line-height:1.6;
+  color:#3d3222;background:var(--panel2);border-left:4px solid var(--gold);
+  border-radius:0 10px 10px 0;padding:16px 20px;margin:14px 0}
+.counting-note .ar{color:var(--gold-text)}
+
+/* Surah cards. */
+#surahs-list,.surah-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:12px;margin:14px 0}
+.surah-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:16px 18px}
+.surah-num{display:block;font-size:1.6rem;color:var(--gold-text);font-variant-numeric:tabular-nums;
+  font-family:Georgia,"Times New Roman",serif}
+.surah-card h3{margin:4px 0 6px;font-size:1.1rem}
+.surah-card h3 .ar{color:var(--gold-text)}
+.surah-meta{color:var(--muted);font-size:.9rem}
+.surah-card a{display:inline-block;margin-top:10px;font-weight:600}
+
+/* Finding cards (verified + unverified). Post-ready: big numbers up top,
+   short text on the face; full method/assumption/source stays on the card,
+   method inside a collapsed <details>. Group headers span the whole grid. */
+#verified-list,.finding-grid,#unverified-list{display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;margin:14px 0}
+#verified-list>h3,#unverified-list>h3{grid-column:1/-1;font-family:Georgia,serif;
+  font-size:1.25rem;margin:26px 0 4px}
+.finding-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:18px 20px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.finding-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.finding-head h3{margin:0;font-size:1.12rem;line-height:1.35}
+.finding-head h3 .ar{color:var(--gold-text)}
+.finding-head .badge{flex-shrink:0;margin-top:2px}
+.finding-nums{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.finding-num{background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+  padding:10px 12px;text-align:center}
+.finding-num span{display:block;color:var(--muted);font-size:.8rem}
+.finding-num b{display:block;font-size:1.55rem;color:var(--gold-text);margin-top:2px;
+  font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.finding-assume{font-size:.88rem;color:var(--muted);line-height:1.5}
+.finding-source{color:var(--faint);font-size:.82rem;line-height:1.5}
+.finding-source .src-title{color:var(--faint)}
+.finding-card details.method{border-top:1px solid var(--line);padding-top:8px}
+.finding-card details.method summary{cursor:pointer;color:var(--gold-text);
+  font-size:.88rem;font-weight:600}
+.finding-card details.method p{margin:8px 0;font-size:.88rem;color:var(--muted)}
+.finding-card details.method p b{color:var(--ink)}
+.finding-card .loc-list{display:block;max-height:180px;overflow:auto;margin-top:4px;
+  font-size:.84rem;line-height:1.7;color:var(--faint);
+  border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:rgba(122,92,0,.04)}
+.finding-card .reason{color:var(--muted);font-size:.85rem;line-height:1.45}
+.finding-card .conf{color:var(--faint);font-size:.78rem;max-width:130px}
+
+/* Mizan verse cards (About Mizan). */
+.mizan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  gap:14px;margin:14px 0}
+.mizan-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:18px 20px}
+.mizan-card b{font-size:1.15rem}
+.mizan-card .ar{font-size:1.25em;line-height:2;text-align:right;direction:rtl;
+  color:var(--ink);margin:10px 0}
+.mizan-card p{color:var(--muted);font-size:.94rem;margin:6px 0 0;line-height:1.55}
+
+/* No horizontal overflow: guard against wide card content on small screens. */
+html,body{overflow-x:clip}
+
+@media (max-width:640px){
+  .stats,.hero-stats,#facts-table,.fact-grid,#corpus-table,.corpus-grid,
+  #surahs-list,.surah-grid,#verified-list,.finding-grid,#unverified-list,
+  .mizan-grid,.extras,.name-grid{grid-template-columns:1fr}
+  .hero-stat b{font-size:1.6rem}
+  .finding-nums{grid-template-columns:1fr 1fr}
+}
