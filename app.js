@@ -4,7 +4,7 @@
    Shared by index.html (verified counts only) and unverified.html
    (differs / cannot_verify only): the script detects which page it is on
    from the DOM ids present and renders only that page's sections, so the
-   row-rendering code is written once. Findings render as data tables.
+   card-rendering code is written once. Findings render as cards.
    Each finding may carry an "assumptions" object {scholar_set, our_set,
    reconciles_under, numbers_by_set, reason}; when it is absent the page
    falls back to the method status and a shortened our_note, so the page
@@ -81,24 +81,31 @@
     return h2;
   }
 
-  /* ---------- research header ---------- */
+  /* ---------- research header: hero stat cards ---------- */
   (function stats() {
     var statsEl = $("stats");
     if (!statsEl) return;
     var c = D.corpus || {};
     var all = D.findings || [];
-    var verified = all.filter(function (f) { return f.our_status === "confirmed"; }).length;
+    /* Hero values derive from corpus_numbers by id, falling back to
+       D.corpus fields only when a corpus_numbers entry is missing. */
+    var numsById = {};
+    (D.corpus_numbers || []).forEach(function (n) { numsById[n.id] = n; });
+    function heroVal(id, fallback) {
+      var e = numsById[id];
+      if (e && typeof e.value === "number") return e.value.toLocaleString("en-US");
+      if (e && e.value != null) return String(e.value);
+      return fallback;
+    }
     var items = [
-      [c.words ? c.words.toLocaleString("en-US") : "77,429", "words"],
-      [c.verses ? c.verses.toLocaleString("en-US") : "6,236", "verses"],
-      [c.surahs || 114, "surahs"],
-      [(D.names || []).length || 99, "Names of God"],
-      [(D.names_totals && D.names_totals.total_occurrences) || 1120, "Name occurrences"],
-      [verified || 37, "verified counts"]
+      [heroVal("surahs", c.surahs ? String(c.surahs) : "114"), "surahs"],
+      [heroVal("verses", c.verses ? c.verses.toLocaleString("en-US") : "6,236"), "verses"],
+      [heroVal("words", c.words ? c.words.toLocaleString("en-US") : "77,429"), "words"],
+      [heroVal("letters_excl_unnumbered_basmalahs", "325,386"), "letters (excl. unnumbered basmalahs)"]
     ];
-    statsEl.innerHTML = items.map(function (it) {
-      return "<span><b>" + esc(it[0]) + "</b> " + esc(it[1]) + "</span>";
-    }).join(" · ");
+    statsEl.innerHTML = '<div class="hero-stats">' + items.map(function (it) {
+      return '<div class="hero-stat"><b>' + esc(it[0]) + "</b><span>" + esc(it[1]) + "</span></div>";
+    }).join("") + "</div>";
     var t = { confirmed: 0, differs: 0, cannot_verify: 0 };
     all.forEach(function (f) { if (t[f.our_status] != null) t[f.our_status]++; });
     var tl = $("tally-line");
@@ -108,7 +115,7 @@
         "the " + (t.differs + t.cannot_verify) + " unverified claims are on a separate page.";
   })();
 
-  /* ---------- About the Quran: sourced facts table ---------- */
+  /* ---------- About the Quran: sourced facts cards ---------- */
   (function renderFacts() {
     var host = $("facts-table");
     if (!host) return;
@@ -122,16 +129,16 @@
     if (D.quran_facts_sample)
       h += '<p class="sample-note">Sample data — citations pending; this table will be replaced ' +
         "with sourced facts (Agent A).</p>";
-    h += '<div class="table-scroll"><table class="data-table"><thead><tr>' +
-      "<th>Fact</th><th>Value</th><th>Source</th></tr></thead><tbody>";
+    h += '<div class="fact-grid">';
     facts.forEach(function (f) {
-      var src = esc(f.source || "—");
+      var src = f.source ? esc(f.source) : "";
       if (f.source_url) src = '<a href="' + esc(f.source_url) + '" target="_blank" rel="noopener">' + src + "</a>";
-      h += "<tr><td><b>" + esc(f.label || f.id || "") + "</b>" +
-        (f.note ? '<div class="reason">' + esc(f.note) + "</div>" : "") + "</td>" +
-        "<td><b>" + esc(f.value) + "</b></td><td>" + src + "</td></tr>";
+      h += '<article class="fact-card"><b class="fact-value">' + esc(f.value) + "</b>" +
+        '<div class="fact-label">' + esc(f.label || f.id || "") + "</div>" +
+        (f.note ? '<div class="fact-note">' + esc(f.note) + "</div>" : "") +
+        (src ? '<div class="fact-source">' + src + "</div>" : "") + "</article>";
     });
-    host.innerHTML = h + "</tbody></table></div>";
+    host.innerHTML = h + "</div>";
   })();
 
   /* ---------- The corpus in numbers ---------- */
@@ -148,18 +155,18 @@
     if (D.corpus_numbers_sample)
       h += '<p class="sample-note">Sample data — script-computed QAC v0.4 totals; ' +
         "this table will be replaced / extended with Agent A's corpus numbers (e.g. a letter count).</p>";
-    h += '<div class="table-scroll"><table class="data-table"><thead><tr>' +
-      "<th>Number</th><th>Count</th><th>Counting rule</th></tr></thead><tbody>";
+    h += '<div class="corpus-grid">';
     nums.forEach(function (n) {
       var v = typeof n.value === "number" ? n.value.toLocaleString("en-US") : String(n.value == null ? "—" : n.value);
-      h += "<tr><td><b>" + esc(n.label || n.id || "") + "</b></td>" +
-        "<td><b>" + esc(v) + "</b></td><td>" + esc(n.rule || "") +
-        (n.source ? ' <span class="src-title">(' + esc(n.source) + ")</span>" : "") + "</td></tr>";
+      h += '<article class="corpus-card"><b class="corpus-value">' + esc(v) + "</b>" +
+        '<div class="corpus-label">' + esc(n.label || n.id || "") + "</div>" +
+        '<div class="corpus-rule">' + esc(n.rule || "") +
+        (n.source ? ' <span class="src-title">(' + esc(n.source) + ")</span>" : "") + "</div></article>";
     });
-    host.innerHTML = h + "</tbody></table></div>";
+    host.innerHTML = h + "</div>";
   })();
 
-  /* ---------- Surahs: 114-row table with search + Meccan/Medinan filter ---------- */
+  /* ---------- Surahs: 114 cards with search + Meccan/Medinan filter ---------- */
   function renderSurahs() {
     var host = $("surahs-list");
     if (!host) return;
@@ -189,24 +196,21 @@
       return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9\u0600-\u06ff]/g, "");
     };
     var nq = norm(q);
-    var rows = "";
+    var cards = "";
     var shown = 0;
     list.forEach(function (s) {
       var hay = norm((s.name_tr || "") + " " + (s.name_ar || "") + " " + String(s.n));
       if (nq && hay.indexOf(nq) === -1 && String(s.n) !== q) return;
       if (t !== "all" && s.type !== t) return;
       shown++;
-      rows += "<tr><td><b>" + esc(s.n) + "</b></td>" +
-        "<td><b>" + esc(s.name_tr || "") + '</b> <span class="ar">' + esc(s.name_ar || "") + "</span></td>" +
-        "<td><b>" + esc(s.verses) + "</b></td>" +
-        '<td><span class="type-tag ' + (s.type === "Medinan" ? "medinan" : "meccan") + '">' +
-        esc(s.type || "") + "</span></td>" +
-        '<td><a href="https://quran.com/' + esc(s.n) + '" target="_blank" rel="noopener">Recite →</a></td></tr>';
+      cards += '<article class="surah-card"><b class="surah-num">' + esc(s.n) + "</b>" +
+        "<h3>" + esc(s.name_tr || "") + ' <span class="ar">' + esc(s.name_ar || "") + "</span></h3>" +
+        '<div class="surah-meta">' + esc(s.verses) + ' verses · <span class="type-tag ' +
+        (s.type === "Medinan" ? "medinan" : "meccan") + '">' + esc(s.type || "") + "</span></div>" +
+        '<a href="https://quran.com/' + esc(s.n) + '" target="_blank" rel="noopener">Recite →</a></article>';
     });
-    host.innerHTML = '<div class="table-scroll"><table class="data-table"><thead><tr>' +
-      "<th>#</th><th>Surah</th><th>Verses</th><th>Revealed</th><th></th></tr></thead><tbody>" +
-      (rows || '<tr><td colspan="5">No surahs match that search.</td></tr>') +
-      "</tbody></table></div>";
+    host.innerHTML = '<div class="surah-grid">' +
+      (cards || "<p>No surahs match that search.</p>") + "</div>";
     var tally = $("surahs-tally");
     if (tally) tally.textContent = "Showing " + shown + " of " + list.length + " surahs.";
   }
@@ -563,7 +567,7 @@
     return h;
   }
 
-  /* ---------- findings: data tables (shared by both pages) ---------- */
+  /* ---------- findings: cards (shared by both pages) ---------- */
   function sourceCell(f) {
     var s = f.source || {};
     var h = esc(s.author || "—");
@@ -572,9 +576,9 @@
     if (s.url) h += '<br><a href="' + esc(s.url) + '" target="_blank" rel="noopener">source</a>';
     return h;
   }
-  function findingRow(f) {
+  function findingCard(f) {
     /* Numbers prefer the recomputed per-set values (consistent with the
-       Assumption column in the same row); fall back to the stored
+       Assumption cell in the same card); fall back to the stored
        verification counts where a set has no number (e.g. scholar_set null). */
     var a = f.assumptions;
     var scholarN = a && a.scholar_set && a.numbers_by_set && a.numbers_by_set[a.scholar_set] != null
@@ -583,24 +587,22 @@
     var ourN = a && a.our_set && a.numbers_by_set && a.numbers_by_set[a.our_set] != null
       ? fmtCount(a.numbers_by_set[a.our_set])
       : fmtCount(f.verification_root_rule && f.verification_root_rule.count);
-    var h = '<tr class="frow"><td class="c-claim"><b>' + esc(f.claim) + "</b>" +
+    var h = '<article class="finding-card"><div class="finding-head"><h3>' + esc(f.claim) +
       (f.claim_arabic_or_terms ? ' <span class="ar">' + esc(f.claim_arabic_or_terms) + "</span>" : "") +
+      "</h3>" + statusBadge(f) +
+      (f.confidence ? '<div class="conf">' + esc(f.confidence) + "</div>" : "") + "</div>" +
+      '<div class="finding-nums">' +
+      '<div class="finding-num"><span>Scholar\'s number</span><b>' + esc(scholarN) + "</b></div>" +
+      '<div class="finding-num"><span>Our number</span><b>' + esc(ourN) + "</b></div></div>" +
       '<div class="cat-tag">' + esc(sectionLabel(f.section)) + " · " + esc(catLabel(f.category)) + "</div>" +
-      methodBlock(f) + "</td>" +
-      '<td class="c-num">' + esc(scholarN) + "</td>" +
-      '<td class="c-num">' + esc(ourN) + "</td>" +
-      '<td class="c-assume">' + assumptionCell(f) + "</td>" +
-      '<td class="c-verdict">' + statusBadge(f) +
-      (f.confidence ? '<div class="conf">' + esc(f.confidence) + "</div>" : "") + "</td>" +
-      '<td class="c-src">' + sourceCell(f) + "</td></tr>";
+      '<div class="finding-assume">' + assumptionCell(f) + "</div>" +
+      methodBlock(f) +
+      '<div class="finding-source">' + sourceCell(f) + "</div></article>";
     return h;
   }
-  function findingsTable(list) {
+  function findingsCards(list) {
     if (!list.length) return "<p>No findings match those filters.</p>";
-    return '<div class="table-scroll"><table class="data-table f-table"><thead><tr>' +
-      "<th>Claim</th><th>Scholar's number</th><th>Our number</th>" +
-      "<th>Assumption</th><th>Verdict</th><th>Source</th></tr></thead><tbody>" +
-      list.map(findingRow).join("") + "</tbody></table></div>";
+    return '<div class="finding-grid">' + list.map(findingCard).join("") + "</div>";
   }
   function matchesFilters(f, q, cat, st) {
     var hay = (f.claim + " " + (f.claim_arabic_or_terms || "") + " " +
@@ -613,9 +615,9 @@
     if (st !== "all" && f.our_status !== st) return false;
     return true;
   }
-  /* Main page: ONE merged table of CONFIRMED findings only. The filter in
+  /* Main page: ONE merged list of CONFIRMED findings only. The filter in
      code (our_status === 'confirmed') is the guarantee — no differs or
-     cannot_verify row can reach this page. No status filter: every row here
+     cannot_verify card can reach this page. No status filter: every card here
      is confirmed. */
   function renderVerified() {
     var host = $("verified-list");
@@ -631,7 +633,7 @@
     var tally = $("verified-tally");
     if (tally) tally.textContent = confirmed.length + " verified findings — " + sch +
       " scholarly · " + site + " counted by this site · " + pop + " popular. Showing " + list.length + ".";
-    host.innerHTML = findingsTable(list);
+    host.innerHTML = findingsCards(list);
   }
   /* Unverified page: differs + cannot_verify only, kept in Scholar / Popular
      groups with a status filter (differs vs cannot_verify). */
@@ -654,7 +656,7 @@
       var group = list.filter(function (f) { return (f.section || "scholarly") === section; });
       if (!group.length) return;
       html += "<h3>" + esc(sectionLabel(section)) + " — " + group.length + " unverified</h3>" +
-        findingsTable(group);
+        findingsCards(group);
     });
     host.innerHTML = html || "<p>No unverified claims match those filters.</p>";
   }
