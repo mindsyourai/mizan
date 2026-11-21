@@ -162,13 +162,22 @@ main{max-width:1060px;margin:0 auto;padding:8px 20px 40px}
 /* names */
 .graph-wrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;
   padding:18px 20px;margin:14px 0}
+/* #names-list is the grid; the cards are its direct children — no inner
+   wrapper grid (2026-11-21 nested-grid fix). */
+#names-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
 .graph-head h3{margin:0 0 4px;font-size:1.15rem}
 .graph-head .hint{color:var(--faint);font-size:.86rem}
-#graph{width:100%;height:auto;display:block;background:var(--panel2);
+/* Graph scroll wrapper (2026-11-21 fix): at phone widths the 960px-wide
+   canvas used to shrink to ~420px and its 11px labels became unreadable.
+   The canvas now keeps a readable minimum width and the wrapper scrolls
+   sideways instead; desktop behaviour is unchanged (the canvas is wider
+   than the minimum there). Click mapping in app.js uses
+   getBoundingClientRect, which already accounts for the scroll offset. */
+.graph-scroll{overflow-x:auto}
+#graph{width:100%;min-width:860px;height:auto;display:block;background:var(--panel2);
   border:1px solid var(--line);border-radius:10px;cursor:pointer}
 .graph-detail{margin-top:12px;color:var(--muted);font-size:.94rem}
 .graph-detail b{color:var(--ink)}
-.name-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
 .name-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;
   padding:14px 16px;cursor:pointer}
 .name-card:hover{border-color:var(--gold)}
@@ -233,17 +242,21 @@ footer p{max-width:900px;margin:0 auto}
    corpus totals, surahs, verified/unverified findings and the Mizan verses.
    Palette, scroll offsets and table styles above are unchanged. ===== */
 
-/* Hero stats: 4-across grid. app.js renders .hero-stat cards into #stats;
-   .hero-stats is styled identically in case the render wraps them. */
-.stats,.hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0 4px}
+/* Hero stats: 4-across grid. app.js renders .hero-stat cards DIRECTLY into
+   #stats — the host is the only grid. (2026-11-21 fix: the previous build
+   also styled an inner .hero-stats wrapper as a grid, and a grid nested
+   inside a grid collapses the inner grid to a single track ~250px wide.) */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0 4px}
 .hero-stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;
   padding:16px 12px;text-align:center}
 .hero-stat b{display:block;font-size:1.9rem;line-height:1.1;color:var(--gold-text);
   font-variant-numeric:tabular-nums;font-family:Georgia,"Times New Roman",serif}
 .hero-stat span{display:block;color:var(--muted);font-size:.88rem;margin-top:4px}
 
-/* Fact + corpus cards: big value on top, label and note below. */
-#facts-table,.fact-grid,#corpus-table,.corpus-grid{display:grid;
+/* Fact + corpus cards: big value on top, label and note below. The hosts
+   (#facts-table, #corpus-table) are the grids and the cards are their direct
+   children — no inner wrapper grids (2026-11-21 nested-grid fix). */
+#facts-table,#corpus-table{display:grid;
   grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin:14px 0}
 .fact-card,.corpus-card{background:var(--panel);border:1px solid var(--line);
   border-radius:12px;padding:16px 18px}
@@ -259,8 +272,9 @@ footer p{max-width:900px;margin:0 auto}
   border-radius:0 10px 10px 0;padding:16px 20px;margin:14px 0}
 .counting-note .ar{color:var(--gold-text)}
 
-/* Surah cards. */
-#surahs-list,.surah-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+/* Surah cards. #surahs-list is the grid; the cards are its direct children
+   — no inner wrapper grid (2026-11-21 nested-grid fix). */
+#surahs-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
   gap:12px;margin:14px 0}
 .surah-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
   padding:16px 18px}
@@ -273,11 +287,16 @@ footer p{max-width:900px;margin:0 auto}
 
 /* Finding cards (verified + unverified). Post-ready: big numbers up top,
    short text on the face; full method/assumption/source stays on the card,
-   method inside a collapsed <details>. Group headers span the whole grid. */
-#verified-list,.finding-grid,#unverified-list{display:grid;
+   method inside a collapsed <details>. The hosts are the grids and the cards
+   are their direct children — no inner wrapper grid (2026-11-21 nested-grid
+   fix). Group headers span the whole grid. Bare <p> children (empty-state
+   notes) also span the grid instead of sitting in one narrow track. */
+#verified-list,#unverified-list{display:grid;
   grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;margin:14px 0}
 #verified-list>h3,#unverified-list>h3{grid-column:1/-1;font-family:Georgia,serif;
   font-size:1.25rem;margin:26px 0 4px}
+#facts-table>p,#corpus-table>p,#surahs-list>p,#verified-list>p,#unverified-list>p,
+#names-list>p{grid-column:1/-1}
 .finding-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
   padding:18px 20px;display:flex;flex-direction:column;gap:10px;min-width:0}
 .finding-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
@@ -318,9 +337,8 @@ footer p{max-width:900px;margin:0 auto}
 html,body{overflow-x:clip}
 
 @media (max-width:640px){
-  .stats,.hero-stats,#facts-table,.fact-grid,#corpus-table,.corpus-grid,
-  #surahs-list,.surah-grid,#verified-list,.finding-grid,#unverified-list,
-  .mizan-grid,.extras,.name-grid{grid-template-columns:1fr}
+  .stats,#facts-table,#corpus-table,#surahs-list,#verified-list,#unverified-list,
+  #names-list,.mizan-grid,.extras{grid-template-columns:1fr}
   .hero-stat b{font-size:1.6rem}
   .finding-nums{grid-template-columns:1fr 1fr}
 }
