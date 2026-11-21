@@ -577,6 +577,61 @@ check('unverified filter: "sea" narrows cards',
 resetUnv();
 check('unverified filter: reset restores 26 cards', count(/class="finding-card"/g, uHtml()) === 26);
 
+/* ================= GRID STRUCTURE (2026-11-21 nested-grid fix) =================
+   The redesign shipped a nested-grid bug: each render wrapped its cards in an
+   inner grid div inside a host that CSS also made a grid, so the inner grid
+   collapsed to a single track (~250–330px) at desktop width. Fix: cards are
+   direct children of the grid host; the inner wrappers are gone. These checks
+   pin that structure so it cannot regress silently. */
+console.log('\n--- grid structure (nested-grid fix) ---');
+const WRAPPERS = ['hero-stats', 'fact-grid', 'corpus-grid', 'surah-grid', 'finding-grid', 'name-grid'];
+const renderedHosts = {
+  '#stats': heroHtml,
+  '#facts-table': factsHtml,
+  '#corpus-table': corpHtml,
+  '#surahs-list': surahsHtml,
+  '#verified-list': vHtml(),
+  '#names-list': main.els['names-list'] ? main.els['names-list'].innerHTML : '',
+  '#unverified-list': uHtml(),
+};
+Object.entries(renderedHosts).forEach(([host, html]) => {
+  check('grid: no inner wrapper divs in rendered ' + host,
+    !WRAPPERS.some((w) => html.includes('class="' + w + '"')),
+    WRAPPERS.filter((w) => html.includes('class="' + w + '"')).join(', ') || 'cards are direct children');
+});
+check('grid: hosts are grids in CSS, inner wrappers are not',
+  /\.stats\{display:grid/.test(css) &&
+  /#facts-table,#corpus-table\{display:grid/.test(css) &&
+  /#surahs-list\{display:grid/.test(css) &&
+  /#verified-list,#unverified-list\{display:grid/.test(css) &&
+  /#names-list\{display:grid/.test(css) &&
+  !/\.hero-stats\{display:grid/.test(css) &&
+  !/\.fact-grid\{display:grid/.test(css) &&
+  !/\.corpus-grid\{display:grid/.test(css) &&
+  !/\.surah-grid\{display:grid/.test(css) &&
+  !/\.finding-grid\{display:grid/.test(css) &&
+  !/\.name-grid\{display:grid/.test(css),
+  'hosts grid; wrappers not');
+const mq = (css.split('@media (max-width:640px)').pop() || '');
+check('grid: mobile single-column rule lists the hosts, none of the removed wrappers',
+  mq.includes('#names-list') && mq.includes('#verified-list') &&
+  !WRAPPERS.some((w) => mq.includes('.' + w)),
+  'mobile rule covers hosts, no wrappers');
+check('grid: bare <p> children of the grids span the full width (empty states)',
+  css.includes('#facts-table>p') && css.includes('#names-list>p') &&
+  css.includes('grid-column:1/-1'));
+check('copy: Verified intro says cards, not "one table"',
+  !indexHtml.includes('in one table') && !indexHtml.includes('on every row') &&
+  indexHtml.includes('each as a card') && indexHtml.includes('on every card'));
+check('graph: canvas sits in a horizontal-scroll wrapper in index.html',
+  indexHtml.includes('<div class="graph-scroll"><canvas id="graph"'));
+check('graph: CSS gives the scroll wrapper overflow-x:auto and the canvas a readable min-width',
+  css.includes('.graph-scroll{overflow-x:auto}') && css.includes('min-width:860px'));
+check('graph: desktop width rule unchanged (width:100%)',
+  /#graph\{[^}]*width:100%/.test(css));
+check('graph: hint tells small-screen users to scroll sideways',
+  indexHtml.includes('scroll sideways to see the whole graph'));
+
 /* ================= NO HARUN YAHYA ================= */
 console.log('\n--- no Harun Yahya ---');
 const scholarJsonRaw = fs.readFileSync('data/scholar_findings.json', 'utf8');
