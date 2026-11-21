@@ -103,9 +103,12 @@
       [heroVal("words", c.words ? c.words.toLocaleString("en-US") : "77,429"), "words"],
       [heroVal("letters_excl_unnumbered_basmalahs", "325,386"), "letters (excl. unnumbered basmalahs)"]
     ];
-    statsEl.innerHTML = '<div class="hero-stats">' + items.map(function (it) {
+    /* Hero cards are direct children of #stats (.stats grid) — no inner
+       wrapper: a grid nested inside a grid collapses the inner grid to a
+       single track (~250px) at desktop width (2026-11-21 fix). */
+    statsEl.innerHTML = items.map(function (it) {
       return '<div class="hero-stat"><b>' + esc(it[0]) + "</b><span>" + esc(it[1]) + "</span></div>";
-    }).join("") + "</div>";
+    }).join("");
     var t = { confirmed: 0, differs: 0, cannot_verify: 0 };
     all.forEach(function (f) { if (t[f.our_status] != null) t[f.our_status]++; });
     var tl = $("tally-line");
@@ -129,7 +132,8 @@
     if (D.quran_facts_sample)
       h += '<p class="sample-note">Sample data — citations pending; this table will be replaced ' +
         "with sourced facts (Agent A).</p>";
-    h += '<div class="fact-grid">';
+    /* Cards are direct children of #facts-table (the grid host) — no inner
+       .fact-grid wrapper (nested-grid collapse, 2026-11-21 fix). */
     facts.forEach(function (f) {
       var src = f.source ? esc(f.source) : "";
       if (f.source_url) src = '<a href="' + esc(f.source_url) + '" target="_blank" rel="noopener">' + src + "</a>";
@@ -138,7 +142,7 @@
         (f.note ? '<div class="fact-note">' + esc(f.note) + "</div>" : "") +
         (src ? '<div class="fact-source">' + src + "</div>" : "") + "</article>";
     });
-    host.innerHTML = h + "</div>";
+    host.innerHTML = h;
   })();
 
   /* ---------- The corpus in numbers ---------- */
@@ -155,7 +159,8 @@
     if (D.corpus_numbers_sample)
       h += '<p class="sample-note">Sample data — script-computed QAC v0.4 totals; ' +
         "this table will be replaced / extended with Agent A's corpus numbers (e.g. a letter count).</p>";
-    h += '<div class="corpus-grid">';
+    /* Cards are direct children of #corpus-table (the grid host) — no inner
+       .corpus-grid wrapper (nested-grid collapse, 2026-11-21 fix). */
     nums.forEach(function (n) {
       var v = typeof n.value === "number" ? n.value.toLocaleString("en-US") : String(n.value == null ? "—" : n.value);
       h += '<article class="corpus-card"><b class="corpus-value">' + esc(v) + "</b>" +
@@ -163,7 +168,7 @@
         '<div class="corpus-rule">' + esc(n.rule || "") +
         (n.source ? ' <span class="src-title">(' + esc(n.source) + ")</span>" : "") + "</div></article>";
     });
-    host.innerHTML = h + "</div>";
+    host.innerHTML = h;
   })();
 
   /* ---------- Surahs: 114 cards with search + Meccan/Medinan filter ---------- */
@@ -209,8 +214,9 @@
         (s.type === "Medinan" ? "medinan" : "meccan") + '">' + esc(s.type || "") + "</span></div>" +
         '<a href="https://quran.com/' + esc(s.n) + '" target="_blank" rel="noopener">Recite →</a></article>';
     });
-    host.innerHTML = '<div class="surah-grid">' +
-      (cards || "<p>No surahs match that search.</p>") + "</div>";
+    /* Cards are direct children of #surahs-list (the grid host) — no inner
+       .surah-grid wrapper (nested-grid collapse, 2026-11-21 fix). */
+    host.innerHTML = cards || "<p>No surahs match that search.</p>";
     var tally = $("surahs-tally");
     if (tally) tally.textContent = "Showing " + shown + " of " + list.length + " surahs.";
   }
@@ -357,7 +363,9 @@
             '<div class="mini-bar"><i style="width:' + pct + '%"></i></div>') +
         "</div>";
     });
-    $("names-list").innerHTML = '<div class="name-grid">' + (html || "<p>No Names match that search.</p>") + "</div>";
+    /* Cards are direct children of #names-list (the grid host) — no inner
+       .name-grid wrapper (nested-grid collapse, 2026-11-21 fix). */
+    $("names-list").innerHTML = html || "<p>No Names match that search.</p>";
     document.querySelectorAll(".name-card").forEach(function (card) {
       var open = function () { showNameDetail(parseInt(card.getAttribute("data-id"), 10)); };
       card.addEventListener("click", open);
@@ -602,7 +610,11 @@
   }
   function findingsCards(list) {
     if (!list.length) return "<p>No findings match those filters.</p>";
-    return '<div class="finding-grid">' + list.map(findingCard).join("") + "</div>";
+    /* Cards are direct children of the grid host (#verified-list /
+       #unverified-list) — no inner .finding-grid wrapper (nested-grid
+       collapse, 2026-11-21 fix). Group <h3> headers are siblings of the
+       cards and span the grid via #unverified-list>h3 in styles.css. */
+    return list.map(findingCard).join("");
   }
   function matchesFilters(f, q, cat, st) {
     var hay = (f.claim + " " + (f.claim_arabic_or_terms || "") + " " +
